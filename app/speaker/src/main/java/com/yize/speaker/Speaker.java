@@ -151,7 +151,7 @@ public class Speaker {
                         e.printStackTrace();
                     }
                 }else {
-                    mainPoster.commit();
+                    mainPoster.commit(topic,msg);
                 }
                 break;
             default:
