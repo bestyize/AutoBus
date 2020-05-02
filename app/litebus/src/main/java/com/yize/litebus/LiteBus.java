@@ -1,17 +1,20 @@
 package com.yize.litebus;
 
 import android.os.Looper;
+import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.PropertyResourceBundle;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LiteBus {
+    private static final String TAG="LiteBus";
     //默认实例
     private volatile static LiteBus DEFAULT_INSTANCE;
     public static LiteBus defaultBus(){
@@ -27,6 +30,7 @@ public class LiteBus {
     public LiteBus(){
         METHOD_CACHE=new ConcurrentHashMap<Class<?>, List<SubscriberMethod>>();
         subscriptionBus=new ConcurrentHashMap<Class<?>, List<Subscription>>();
+        dataTypeList=new CopyOnWriteArrayList<>();
         mainPublisher=new MainPublisher();
     }
     //订阅者的方法缓存，key为订阅者类
@@ -35,6 +39,8 @@ public class LiteBus {
     //订阅总线，key为数据类型，value是订阅者的订阅。在消息发布的时候根据消息类型进行派发
     private Map<Class<?>,List<Subscription>> subscriptionBus;
 
+    private List<Class<?>> dataTypeList;
+
     private Publisher mainPublisher;
 
 
@@ -42,7 +48,6 @@ public class LiteBus {
      * 注册数据总线，根据数据类型的不同，放到Map对应位置
      * @param subscriber
      */
-    @Subscribe
     public void register(Object subscriber){
         Class<?> subscriberClass=subscriber.getClass();
         List<SubscriberMethod> subscriberMethodList=findSubscribeMethods(subscriberClass);
@@ -70,6 +75,9 @@ public class LiteBus {
                 Subscribe subscribe=method.getAnnotation(Subscribe.class);
                 WorkMode workMode=subscribe.workMode();//入口方法的工作模式，也就是作用的线程
                 Class<?> dataType=method.getParameterTypes()[0];//获取订阅方法的入口参数的类型
+                if(!dataTypeList.contains(dataType)){
+                    dataTypeList.add(dataType);
+                }
                 SubscriberMethod subscriberMethod=new SubscriberMethod(method,workMode,dataType);
                 subscriberMethodList.add(subscriberMethod);
             }
@@ -98,7 +106,6 @@ public class LiteBus {
      * @param data
      */
     public void publish(Object data){
-
         PublishThreadState currState=currentPublishState.get();
         List<Object> dataQueue=currState.dataQueue;
         dataQueue.add(data);
@@ -184,6 +191,35 @@ public class LiteBus {
         boolean isMainThread;
         boolean isPublishing;
     }
+
+    /**
+     * 解除数据总线上的注册
+     * @param subscriber
+     */
+    public void unregister(Object subscriber){
+        Class<?> subscriberClass=subscriber.getClass();
+        List<SubscriberMethod> subscriberMethods=METHOD_CACHE.get(subscriberClass);
+        if(subscriberMethods.size()==0){
+            Log.i(TAG,"unregister failed ,there is no subscriber");
+            return;
+        }
+        METHOD_CACHE.remove(subscriberClass);
+        for (Class<?> dataType:dataTypeList){
+            List<Subscription> subscriptionList=subscriptionBus.get(dataType);
+            if(subscriptionList!=null&&subscriptionList.size()>0){
+                for (int i=0;i<subscriptionList.size();i++){
+                    if(subscriptionList.get(i).subscriber==subscriber){
+                        subscriptionList.remove(subscriptionList.get(i));
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+
 
 
 

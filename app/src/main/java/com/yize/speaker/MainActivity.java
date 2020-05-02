@@ -10,8 +10,7 @@ import com.yize.litebus.LiteBus;
 import com.yize.litebus.Subscribe;
 import com.yize.litebus.WorkMode;
 import com.yize.speaker.databinding.ActivityMainBinding;
-import com.yize.speaker.listener.Listen;
-import com.yize.speaker.listener.ListenMode;
+
 
 import java.io.Serializable;
 
@@ -58,5 +57,11 @@ public class MainActivity extends AppCompatActivity {
         public MyMessage(String msg){
             this.msg=msg;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LiteBus.defaultBus().unregister(this);
     }
 }
