@@ -34,6 +34,11 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                         Speaker.defaultSpeaker().speakToAll(new MyMessage("异步消息"));
                     }
                 }).start();
@@ -45,8 +50,7 @@ public class MainActivity extends AppCompatActivity {
     public void finder(MyMessage obj){
         System.out.println("finder:"+obj.msg);
     }
-    class MyMessage implements Serializable {
-        public static final int serialVersionUid=0x1234569;
+    class MyMessage {
         public String msg;
         public MyMessage(String msg){
             this.msg=msg;
