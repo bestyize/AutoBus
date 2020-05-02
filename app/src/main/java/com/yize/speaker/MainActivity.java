@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 
+import com.yize.litebus.LiteBus;
+import com.yize.litebus.Subscribe;
+import com.yize.litebus.WorkMode;
 import com.yize.speaker.databinding.ActivityMainBinding;
 import com.yize.speaker.listener.Listen;
 import com.yize.speaker.listener.ListenMode;
@@ -16,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     ActivityMainBinding vb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Speaker.defaultSpeaker().register(this);
+        LiteBus.defaultBus().register(this);
         super.onCreate(savedInstanceState);
         vb=ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(vb.getRoot());
@@ -25,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Object obj=new Object();
                 System.out.println(obj);
-                Speaker.defaultSpeaker().speakToAll(new MyMessage("同步消息"));
+                LiteBus.defaultBus().publish(new MyMessage("同步消息"));
             }
         });
         vb.btnSendAsyncMsg.setOnClickListener(new View.OnClickListener() {
@@ -39,14 +42,14 @@ public class MainActivity extends AppCompatActivity {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                        Speaker.defaultSpeaker().speakToAll(new MyMessage("异步消息"));
+                        LiteBus.defaultBus().publish(new MyMessage("异步消息"));
                     }
                 }).start();
             }
         });
 
     }
-    @Listen(listenMode = ListenMode.MAIN_THREAD)
+    @Subscribe(workMode = WorkMode.THREAD_MAIN)
     public void finder(MyMessage obj){
         System.out.println("finder:"+obj.msg);
     }
