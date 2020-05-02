@@ -2,7 +2,9 @@ package com.yize.speaker;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
@@ -15,6 +17,7 @@ import com.yize.speaker.databinding.ActivityMainBinding;
 import java.io.Serializable;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG="MainActivity";
     ActivityMainBinding vb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,28 +39,35 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        int count=20;
+                        while (count-->0){
+                            try {
+                                LiteBus.defaultBus().publish(new MyMessage("异步消息"));
+                                Thread.sleep(2000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
                         }
-                        LiteBus.defaultBus().publish(new MyMessage("异步消息"));
+
                     }
                 }).start();
+            }
+        });
+        vb.btnOpenSecond.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(MainActivity.this,TestActivity.class);
+                startActivity(intent);
             }
         });
 
     }
     @Subscribe(workMode = WorkMode.THREAD_MAIN)
     public void finder(MyMessage obj){
-        System.out.println("finder:"+obj.msg);
+        Log.i(TAG,obj.msg);
     }
-    class MyMessage {
-        public String msg;
-        public MyMessage(String msg){
-            this.msg=msg;
-        }
-    }
+
 
     @Override
     protected void onDestroy() {
