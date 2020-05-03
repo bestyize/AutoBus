@@ -1,4 +1,3 @@
 rootProject.name='Speaker'
 include ':app'
-include ':app:speaker'
 include ':app:litebus'
