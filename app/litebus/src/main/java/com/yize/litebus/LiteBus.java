@@ -204,16 +204,22 @@ public class LiteBus {
             return;
         }
         METHOD_CACHE.remove(subscriberClass);
-        for (Class<?> dataType:dataTypeList){
-            List<Subscription> subscriptionList=subscriptionBus.get(dataType);
-            if(subscriptionList!=null&&subscriptionList.size()>0){
-                for (int i=0;i<subscriptionList.size();i++){
-                    if(subscriptionList.get(i).subscriber==subscriber){
-                        subscriptionList.remove(subscriptionList.get(i));
+        synchronized (this){
+            for (Class<?> dataType:dataTypeList){
+                List<Subscription> subscriptionList=subscriptionBus.get(dataType);
+                if(subscriptionList!=null&&subscriptionList.size()>0){
+                    int curr=0;
+                    while (curr<subscriptionList.size()){
+                        if(subscriptionList.get(curr).subscriber==subscriber){
+                            subscriptionList.remove(curr);
+                        }else {
+                            curr++;
+                        }
                     }
                 }
             }
         }
+
     }
 
 }
