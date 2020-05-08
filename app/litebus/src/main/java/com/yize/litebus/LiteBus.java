@@ -23,6 +23,7 @@ public class LiteBus {
                 }
             }
         }
+
         return DEFAULT_INSTANCE;
     }
     public LiteBus(){

@@ -21,13 +21,13 @@ public class SubscripitionManager {
      */
     public SubscripitionManager(boolean fair){
         this.fair=fair;
-        new SubscripitionManager();
-    }
-
-    public SubscripitionManager() {
         if(executor==null){
             executor=new ThreadPoolExecutor(CORE_THREAD_SIZE,MAX_THREAD_SIZE,1, TimeUnit.SECONDS,new ArrayBlockingQueue<Runnable>(MAX_THREAD_SIZE));
         }
+    }
+
+    public SubscripitionManager() {
+        this(true);
     }
 
 
