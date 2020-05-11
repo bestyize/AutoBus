@@ -85,21 +85,6 @@ public class AutoBus {
         this.autoBusBuilder=autoBusBuilder;
     }
 
-//    public static void main(String[] args) {
-//        AutoBus autoBus=AutoBus.Builder().with(new Activity()).load("https://www.baidu.com").addListener(new AutoBusListener() {
-//            @Override
-//            public void onSuccess(String response) {
-//
-//            }
-//
-//            @Override
-//            public void onFailed(String reason) {
-//
-//            }
-//        }).build();
-//    }
-
-
     private interface AutoBusListener {
         void onSuccess(String response);
         void onFailed(String reason);
