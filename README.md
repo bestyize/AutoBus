@@ -2,14 +2,72 @@
 
 一个自写的发布订阅框架,主要作用是实现消息在组件之间的传递，将会支持配置文件的功能，而不是将消息发布到所有的订阅者身上。
 
-## 2020-05-01更新
+# 使用方式
 
-利用反射机制，初步实现消息发布功能
+在需要接受消息的方法上面声明注解
 
-## 2020-05-06更新
+在生命周期结束时销毁订阅
 
-更改项目为LiteBus
 
-## 2020-05-07更新
+下面是一个用例
 
-修复在取消注册时空指针闪退问题，回收订阅时采用线程池管理
+```java
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG="MainActivity";
+    ActivityMainBinding vb;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        LiteBus.defaultBus().register(this);
+        super.onCreate(savedInstanceState);
+        vb=ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(vb.getRoot());
+        vb.btnSendMsg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Object obj=new Object();
+                System.out.println(obj);
+                LiteBus.defaultBus().publish(new MyMessage("同步消息"));
+            }
+        });
+        vb.btnSendAsyncMsg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        int count=20;
+                        while (count-->0){
+                            try {
+                                LiteBus.defaultBus().publish(new MyMessage("异步消息"));
+                                Thread.sleep(2000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+
+                    }
+                }).start();
+            }
+        });
+        vb.btnOpenSecond.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(MainActivity.this,TestActivity.class);
+                startActivity(intent);
+            }
+        });
+
+
+    }
+    @Subscribe(workMode = WorkMode.THREAD_MAIN)
+    public void finder(MyMessage obj){
+        Log.i(TAG,obj.msg);
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        LiteBus.defaultBus().unregister(this);
+    }
+```
