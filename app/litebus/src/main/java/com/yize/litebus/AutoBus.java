@@ -22,15 +22,13 @@ public class AutoBus {
                 }
             }
         }
-        LiteBus.defaultBus().register(activity);
         return DEFAULT_INSTANCE;
     }
 
     public AutoBus(Object activity) {
-
-        register(activity);
+        LiteBus.getAutoBus().register(activity);
         subscribrActivity=activity;
-
+        register(activity);
     }
 
     private AutoBusFragmentLifeCycleListener lifeCycleListener=new AutoBusFragmentLifeCycleListener() {
@@ -47,7 +45,7 @@ public class AutoBus {
         @Override
         public void onDestroy() {
             Log.i("AutoBus","onDestroy()");
-            LiteBus.defaultBus().unregister(subscribrActivity);
+            LiteBus.getAutoBus().unregister(subscribrActivity);
             subscribrActivity=null;
         }
     };
@@ -75,6 +73,6 @@ public class AutoBus {
     }
 
     public void post(Object data){
-        LiteBus.defaultBus().publish(data);
+        LiteBus.getAutoBus().publish(data);
     }
 }

@@ -27,6 +27,20 @@ public class LiteBus {
 
         return DEFAULT_INSTANCE;
     }
+
+    private volatile static LiteBus AUTO_BUS_INSTANCE;
+    public static LiteBus getAutoBus(){
+        if(AUTO_BUS_INSTANCE==null){
+            synchronized (LiteBus.class){
+                if(AUTO_BUS_INSTANCE==null){
+                    AUTO_BUS_INSTANCE=new LiteBus();
+                }
+            }
+        }
+
+        return AUTO_BUS_INSTANCE;
+    }
+
     public LiteBus(){
         METHOD_CACHE=new ConcurrentHashMap<Class<?>, List<SubscriberMethod>>();
         subscriptionBus=new ConcurrentHashMap<Class<?>, List<Subscription>>();

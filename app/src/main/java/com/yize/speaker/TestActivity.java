@@ -4,7 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
+import com.yize.litebus.AutoBus;
 import com.yize.litebus.LiteBus;
 import com.yize.litebus.Subscribe;
 import com.yize.litebus.WorkMode;
@@ -16,10 +18,28 @@ public class TestActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LiteBus.defaultBus().register(this);
         binding=ActivityTestBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        binding.btnSecond.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        int i=20;
+                        while (i-->0){
+                            try {
+                                Thread.sleep(2000);
+                                AutoBus.with(TestActivity.this).post(new MyMessage("AutoBus发出的消息"));
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
 
+                        }
+                    }
+                }).start();
+            }
+        });
     }
     @Subscribe(workMode = WorkMode.THREAD_MAIN)
     public void receiver(MyMessage message){
@@ -29,6 +49,5 @@ public class TestActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        LiteBus.defaultBus().unregister(this);
     }
 }
