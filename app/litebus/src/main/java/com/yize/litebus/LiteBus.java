@@ -5,6 +5,7 @@ import android.util.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,7 @@ public class LiteBus {
         subscriptionBus=new ConcurrentHashMap<Class<?>, List<Subscription>>();
         SUBSCRIPTION_CACHE=new ConcurrentHashMap<Class<?>, List<Subscription>>();
         dataTypeList=new CopyOnWriteArrayList<>();
+        subscriberDataTypeList=new HashMap<>();
         mainPublisher=new MainPublisher();
     }
     //订阅者的方法缓存，key为订阅者类
@@ -41,8 +43,10 @@ public class LiteBus {
     private volatile Map<Class<?>,List<Subscription>> subscriptionBus;
     //订阅者的订阅缓存，key是订阅者类
     private volatile Map<Class<?>,List<Subscription>> SUBSCRIPTION_CACHE;
-    //消息列表
+    //所有的消息类型种类列表
     private volatile List<Class<?>> dataTypeList;
+    //订阅者类的消息种类列表
+    private volatile Map<Class<?>,List<Class<?>>> subscriberDataTypeList;
 
     //主发布器
     private Publisher mainPublisher;
@@ -95,7 +99,7 @@ public class LiteBus {
      * @param subscriber
      * @param subscriberMethod
      */
-    private void subscribeByDataType(Object subscriber,SubscriberMethod subscriberMethod){
+    private void subscribeByDataType(Object subscriber, SubscriberMethod subscriberMethod){
         Subscription subscription=new Subscription(subscriber,subscriberMethod);
         Class<?> dataType=subscriberMethod.dataType;
         List<Subscription> subscriptionList=subscriptionBus.get(dataType);
@@ -153,7 +157,7 @@ public class LiteBus {
      * @param data
      * @param isMainThread
      */
-    public void publishToSubscriber(Subscription subscription,Object data,boolean isMainThread){
+    public void publishToSubscriber(Subscription subscription, Object data, boolean isMainThread){
         WorkMode workMode=subscription.subscriberMethod.workMode;
         switch (workMode){
             case THREAD_MAIN:
@@ -177,7 +181,7 @@ public class LiteBus {
      * @param subscription
      * @param data
      */
-    private void invoke(Subscription subscription,Object data){
+    private void invoke(Subscription subscription, Object data){
         try {
             subscription.subscriberMethod.method.invoke(subscription.subscriber,data);
         } catch (IllegalAccessException e) {

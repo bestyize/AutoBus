@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG,obj.msg);
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();

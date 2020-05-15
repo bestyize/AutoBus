@@ -1,211 +1,80 @@
 package com.yize.litebus;
 
 import android.app.Activity;
-import android.os.Handler;
-import android.os.Message;
+import android.app.FragmentManager;
+import android.util.Log;
 
-import androidx.annotation.NonNull;
+import com.yize.litebus.autobus.AutoBusBlankFragment;
+import com.yize.litebus.autobus.AutoBusFragmentLifeCycleListener;
 
-import com.yize.litebus.life.AutoLifeListener;
-import com.yize.litebus.life.AutoLifeManager;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.RejectedExecutionHandler;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AutoBus {
-    private volatile static AutoBus AUTO_LIFE_INSTANCE;
-    private AutoLifeManager autoLifeManager;
-    public static AutoBus getAutoLifeBus(){
-        if(AUTO_LIFE_INSTANCE==null){
-            synchronized (LiteBus.class){
-                if(AUTO_LIFE_INSTANCE==null){
-                    AUTO_LIFE_INSTANCE=new AutoBus();
+    private static final String TAG="com.yize.litebus.AutoBus";
+    private static volatile AutoBus DEFAULT_INSTANCE;
+    private static Object subscribrActivity;
+    public static AutoBus with(Object activity){
+        if(DEFAULT_INSTANCE==null){
+            synchronized (AutoBus.class){
+                if(DEFAULT_INSTANCE==null){
+                    DEFAULT_INSTANCE=new AutoBus(activity);
                 }
             }
         }
-        return AUTO_LIFE_INSTANCE;
+        LiteBus.defaultBus().register(activity);
+        return DEFAULT_INSTANCE;
     }
 
-    private ExecutorService executorService;
-    private static final int DEFAULT_CORE_POOL_SIZE=4;
-    private static final int MAX_POOL_SIZE=16;
+    public AutoBus(Object activity) {
 
-    private AutoBus() {
-        this(new AutoBusBuilder());
-        autoLifeManager=AutoLifeManager.getDefaultManager();
-        executorService=new ThreadPoolExecutor(DEFAULT_CORE_POOL_SIZE
-                ,MAX_POOL_SIZE
-                ,5
-                , TimeUnit.SECONDS
-                ,new ArrayBlockingQueue<Runnable>(MAX_POOL_SIZE)
-                ,new ConcurrentThreadFactory()
-                ,new ExceedHandler());
-        mainThreadHandler=new MainThreadHandler();
+        register(activity);
+        subscribrActivity=activity;
 
     }
 
-    /**
-     * 线程工厂
-     */
-    private class ConcurrentThreadFactory implements ThreadFactory {
-        public Thread newThread(Runnable r) {
-            return new Thread(r);
-        }
-    }
-
-    /**
-     * 饱和策略
-     */
-    private class ExceedHandler implements RejectedExecutionHandler {
-
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            System.out.println("超过最大线程数");
-        }
-    }
-
-    private static AutoBusBuilder Builder(){
-        return autoBusBuilder;
-    }
-
-    private static AutoBusBuilder autoBusBuilder;
-
-    public AutoBus(AutoBusBuilder autoBusBuilder){
-        this.autoBusBuilder=autoBusBuilder;
-    }
-
-    private interface AutoBusListener {
-        void onSuccess(String response);
-        void onFailed(String reason);
-    }
-
-    private static final int SUCCESS=0;
-    private static final int FAILED=-1;
-
-    class AsynsWebRequestListener implements AutoBusListener{
-
+    private AutoBusFragmentLifeCycleListener lifeCycleListener=new AutoBusFragmentLifeCycleListener() {
         @Override
-        public void onSuccess(String response) {
-            Message msg=new Message();
-            msg.what=SUCCESS;
-            msg.obj=response;
-            mainThreadHandler.sendMessage(msg);
+        public void onStart() {
+            Log.i("AutoBus","onStart()");
         }
 
         @Override
-        public void onFailed(String reason) {
-            Message msg=new Message();
-            msg.what=FAILED;
-            msg.obj=reason;
-            mainThreadHandler.sendMessage(msg);
-        }
-    }
-
-    /**
-     * 做出请求
-     */
-    public void doRequest(){
-        if(autoBusBuilder==null){
-            throw new NullPointerException("未构建！");
-        }
-        autoLifeManager.bindLifeCycle(autoBusBuilder.activity, new AutoLifeListener() {
-            @Override
-            public void onStart() {
-
-            }
-
-            @Override
-            public void onStop() {
-                isStop=true;
-            }
-
-            @Override
-            public void onDestroy() {
-                isDestory=true;
-            }
-        });
-        executorService.submit(new AsyncWebRequestRunnable(autoBusBuilder.link,autoBusBuilder.headers,new AsynsWebRequestListener()));
-    }
-
-    public boolean isDestory;
-    public boolean isStop;
-
-    static class MainThreadHandler extends Handler {
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what){
-                case SUCCESS:
-                    //ToDo
-                    String response=(String) msg.obj;
-                    break;
-                case FAILED:
-                    //ToDo
-                    String reason=(String) msg.obj;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
-    private MainThreadHandler mainThreadHandler;
-
-
-    class AsyncWebRequestRunnable implements Runnable{
-        private String link;
-        private Map<String,String> headers;
-        private AutoBusListener listener;
-
-        public AsyncWebRequestRunnable(String link, Map<String, String> headers,AutoBusListener autoBusListener) {
-            this.link = link;
-            this.headers = headers;
-            this.listener=autoBusListener;
+        public void onStop() {
+            Log.i("AutoBus","onStop()");
         }
 
         @Override
-        public void run() {
-            try {
-                URL url=new URL(link);
-                HttpURLConnection conn=(HttpURLConnection)url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setReadTimeout(10000);
-                conn.setConnectTimeout(10000);
-                if(headers!=null){
-                    for (String key:headers.keySet()){
-                        conn.setRequestProperty(key,headers.get(key));
-                    }
-                }
-                BufferedReader reader=new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String line;
-                StringBuilder sb=new StringBuilder();
-                while((line=reader.readLine())!=null){
-                    if(isDestory||isStop){
-                        reader.close();
-                        conn.disconnect();
-                        listener.onFailed("组件已销毁或停止");
-                        return;
-                    }
-                    sb.append(line);
-                }
-                reader.close();
-                conn.disconnect();
-                listener.onSuccess(sb.toString());
-            } catch (IOException e) {
-                listener.onFailed(e.toString());
-            }
+        public void onDestroy() {
+            Log.i("AutoBus","onDestroy()");
+            LiteBus.defaultBus().unregister(subscribrActivity);
+            subscribrActivity=null;
+        }
+    };
+
+    private Map<FragmentManager, AutoBusBlankFragment> FRAGMENT_MANAGER_CHACE=new ConcurrentHashMap<>();
+
+
+
+    private void register(Object activity){
+        if(activity instanceof Activity){
+            FragmentManager fm=((Activity)activity).getFragmentManager();
+            AutoBusBlankFragment blankFragment=getBlankFragment(fm);
+            blankFragment.getLifeCycle().registerListener(lifeCycleListener);
         }
     }
 
+    private AutoBusBlankFragment getBlankFragment(FragmentManager fm) {
+        AutoBusBlankFragment blankFragment=(AutoBusBlankFragment)fm.findFragmentByTag(TAG);
+        if(blankFragment==null){
+            blankFragment=new AutoBusBlankFragment();
+            fm.beginTransaction().add(blankFragment,TAG).commitAllowingStateLoss();
+        }
+        return blankFragment;
+
+    }
+
+    public void post(Object data){
+        LiteBus.defaultBus().publish(data);
+    }
 }

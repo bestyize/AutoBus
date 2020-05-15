@@ -8,11 +8,6 @@ import androidx.annotation.NonNull;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class MainPublisher extends Handler implements Publisher {
     private static final int MAIN_DATA=0;
