@@ -1,78 +1,121 @@
 # LiteBus
 
+## 1、介绍
+
 一个自写的发布订阅框架,主要作用是实现消息在组件之间的传递。
 目前支持两种模式，一种需要自己注册和取消订阅事件（LiteBus）
-另一种通过绑定activity生命周期来实现不需要自己注册或者取消事件
+另一种通过绑定activity生命周期来实现不需要自己注册或者取消事件(AutoBus)
 
 第一种配置稍微麻烦一点，但是比较通用，普通类也可以使用
 第二种不需要配置，拿来即用，但只能用在activity或者fragment中
 
-# 使用方式
+## 2、AutoBus使用方式
 
-在需要接受消息的方法上面声明注解
-
-在生命周期结束时销毁订阅
-
-
-下面是一个用例
+1、定义消息类型
 
 ```java
-public class MainActivity extends AppCompatActivity {
-    private static final String TAG="MainActivity";
-    ActivityMainBinding vb;
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        LiteBus.defaultBus().register(this);
-        super.onCreate(savedInstanceState);
-        vb=ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(vb.getRoot());
-        vb.btnSendMsg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Object obj=new Object();
-                System.out.println(obj);
-                LiteBus.defaultBus().publish(new MyMessage("同步消息"));
-            }
-        });
-        vb.btnSendAsyncMsg.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        int count=20;
-                        while (count-->0){
-                            try {
-                                LiteBus.defaultBus().publish(new MyMessage("异步消息"));
-                                Thread.sleep(2000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+    class MyMessage{
+        public final String msg;
 
-                        }
-
-                    }
-                }).start();
-            }
-        });
-        vb.btnOpenSecond.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent=new Intent(MainActivity.this,TestActivity.class);
-                startActivity(intent);
-            }
-        });
-
-
+        public MyMessage(String msg) {
+            this.msg = msg;
+        }
     }
+```
+
+2、在需要接受消息的方法上面声明注解,并且声明方法的工作线程
+
+```java
     @Subscribe(workMode = WorkMode.THREAD_MAIN)
-    public void finder(MyMessage obj){
-        Log.i(TAG,obj.msg);
+    public void receiver(MyMessage message){
+        Log.i("MainActivity",message.msg);
     }
-    
+```
+
+3、使用AutoBus发送消息
+
+```java
+    AutoBus.with(MainActivity.this).post(new MyMessage("Hello AutoBus"));
+```
+
+## 3、LiteBus使用方式
+
+1、定义消息类型
+
+```java
+    class MyMessage{
+        public final String msg;
+
+        public MyMessage(String msg) {
+            this.msg = msg;
+        }
+    }
+```
+
+2、在需要接受消息的方法上面声明注解,并且声明方法的工作线程
+
+```java
+    @Subscribe(workMode = WorkMode.THREAD_MAIN)
+    public void receiver(MyMessage message){
+        Log.i("MainActivity",message.msg);
+    }
+```
+
+3、在onCreate中注册当前类
+
+```java
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        LiteBus.defaultBus().register(this);
+        ...
+        ...
+    }
+```
+
+4、在某个线程中发送消息
+
+```java
+    LiteBus.defaultBus().publish(new MyMessage("Hello LiteBus"));
+```
+
+5、重写onDestroy()取消当前类的注册
+
+```java
     @Override
     protected void onDestroy() {
         super.onDestroy();
         LiteBus.defaultBus().unregister(this);
     }
+```
+
+## 4、引入LiteBus依赖
+
+1、添加jitpack.io仓库(build.gradle(project))
+
+```gradle
+    buildscript {
+        repositories {
+            maven { url 'https://jitpack.io' }
+            google()
+            jcenter()
+        }
+        dependencies {
+            classpath 'com.android.tools.build:gradle:3.6.3'
+            // NOTE: Do not place your application dependencies here; they belong
+            // in the individual module build.gradle files
+        }
+    }
+    allprojects {
+        repositories {
+            maven { url 'https://jitpack.io' }
+            google()
+            jcenter()
+        }
+    }
+```
+
+2、引入LiteBus依赖(build.gradle(app))
+
+```gradle
+    implementation 'com.github.bestyize:LiteBus:v1.0.2'
 ```
