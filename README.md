@@ -1,4 +1,4 @@
-# LiteBus
+# AutoBus
 
 ## 1、介绍
 
@@ -114,8 +114,8 @@
     }
 ```
 
-2、引入LiteBus依赖(build.gradle(app))
+2、引入AutoBus依赖(build.gradle(app))
 
 ```gradle
-    implementation 'com.github.bestyize:LiteBus:v1.0.2'
+    implementation 'com.github.bestyize:AutoBus:v1.0.3'
 ```
