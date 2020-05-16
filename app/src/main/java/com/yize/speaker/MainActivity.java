@@ -7,8 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-
-//import com.yize.litebus.LiteBus;
+import com.yize.autobus.LiteBus;
 //import com.yize.litebus.Subscribe;
 //import com.yize.litebus.WorkMode;
 import com.yize.speaker.databinding.ActivityMainBinding;
@@ -21,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
     ActivityMainBinding vb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        //LiteBus.defaultBus().register(this);
+//        LiteBus.defaultBus().register(this);
         super.onCreate(savedInstanceState);
         vb=ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(vb.getRoot());

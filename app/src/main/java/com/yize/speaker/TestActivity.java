@@ -6,10 +6,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 
-//import com.yize.litebus.AutoBus;
-//import com.yize.litebus.LiteBus;
-//import com.yize.litebus.Subscribe;
-//import com.yize.litebus.WorkMode;
+
+import com.yize.autobus.AutoBus;
+import com.yize.autobus.Subscribe;
+import com.yize.autobus.WorkMode;
 import com.yize.speaker.databinding.ActivityTestBinding;
 
 public class TestActivity extends AppCompatActivity {
@@ -30,7 +30,7 @@ public class TestActivity extends AppCompatActivity {
                         while (i-->0){
                             try {
                                 Thread.sleep(2000);
-//                                AutoBus.with(TestActivity.this).post(new MyMessage("AutoBus发出的消息"));
+                                AutoBus.with(TestActivity.this).post(new MyMessage("AutoBus发出的消息"));
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -41,10 +41,10 @@ public class TestActivity extends AppCompatActivity {
             }
         });
     }
-//    @Subscribe(workMode = WorkMode.THREAD_MAIN)
-//    public void receiver(MyMessage message){
-//        Log.i(TAG,message.msg);
-//    }
+    @Subscribe(workMode = WorkMode.THREAD_MAIN)
+    public void receiver(MyMessage message){
+        Log.i(TAG,message.msg);
+    }
 
     @Override
     protected void onDestroy() {
