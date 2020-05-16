@@ -8,9 +8,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 
-import com.yize.litebus.LiteBus;
-import com.yize.litebus.Subscribe;
-import com.yize.litebus.WorkMode;
+//import com.yize.litebus.LiteBus;
+//import com.yize.litebus.Subscribe;
+//import com.yize.litebus.WorkMode;
 import com.yize.speaker.databinding.ActivityMainBinding;
 
 
@@ -21,7 +21,7 @@ public class MainActivity extends AppCompatActivity {
     ActivityMainBinding vb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        LiteBus.defaultBus().register(this);
+        //LiteBus.defaultBus().register(this);
         super.onCreate(savedInstanceState);
         vb=ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(vb.getRoot());
@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Object obj=new Object();
                 System.out.println(obj);
-                LiteBus.defaultBus().publish(new MyMessage("同步消息"));
+//                LiteBus.defaultBus().publish(new MyMessage("同步消息"));
             }
         });
         vb.btnSendAsyncMsg.setOnClickListener(new View.OnClickListener() {
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                         int count=20;
                         while (count-->0){
                             try {
-                                LiteBus.defaultBus().publish(new MyMessage("异步消息"));
+//                                LiteBus.defaultBus().publish(new MyMessage("异步消息"));
                                 Thread.sleep(2000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -64,14 +64,14 @@ public class MainActivity extends AppCompatActivity {
 
 
     }
-    @Subscribe(workMode = WorkMode.THREAD_MAIN)
-    public void finder(MyMessage obj){
-        Log.i(TAG,obj.msg);
-    }
+//    @Subscribe(workMode = WorkMode.THREAD_MAIN)
+//    public void finder(MyMessage obj){
+//        Log.i(TAG,obj.msg);
+//    }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        LiteBus.defaultBus().unregister(this);
+//        LiteBus.defaultBus().unregister(this);
     }
 }
