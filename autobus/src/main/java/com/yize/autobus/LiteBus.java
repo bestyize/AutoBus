@@ -3,6 +3,10 @@ package com.yize.autobus;
 import android.os.Looper;
 import android.util.Log;
 
+import com.yize.autobus.pubish.AsyncPublisher;
+import com.yize.autobus.pubish.MainPublisher;
+import com.yize.autobus.pubish.Publisher;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -49,6 +53,7 @@ public class LiteBus {
         dataTypeList=new CopyOnWriteArrayList<>();
         subscriberDataTypeList=new HashMap<>();
         mainPublisher=new MainPublisher();
+        asyncPublisher=new AsyncPublisher();
     }
     //订阅者的方法缓存，key为订阅者类
     private volatile Map<Class<?>, List<SubscriberMethod>> METHOD_CACHE;
@@ -65,6 +70,7 @@ public class LiteBus {
 
     //主发布器
     private Publisher mainPublisher;
+    private Publisher asyncPublisher;
 
 
     /**
@@ -74,6 +80,10 @@ public class LiteBus {
     public void register(Object subscriber){
         Class<?> subscriberClass=subscriber.getClass();
         List<SubscriberMethod> subscriberMethodList=findSubscribeMethods(subscriberClass);
+        if(subscriberMethodList.size()==0){
+            Log.e("LiteBus","所在类没有订阅方法");
+            return;
+        }
         synchronized (this){
             for (SubscriberMethod subscriberMethod:subscriberMethodList){
                 subscribeByDataType(subscriber,subscriberMethod);
@@ -183,8 +193,10 @@ public class LiteBus {
                 }
                 break;
             case THREAD_SYNC:
+                invoke(subscription,data);
                 break;
             case THREAD_ASYNC:
+                asyncPublisher.enqueue(subscription,data);
                 break;
             default:
                 break;

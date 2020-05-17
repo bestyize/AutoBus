@@ -1,4 +1,4 @@
-package com.yize.autobus;
+package com.yize.autobus.pubish;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -6,23 +6,15 @@ import android.os.Message;
 
 import androidx.annotation.NonNull;
 
+import com.yize.autobus.Subscription;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedList;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class MainPublisher extends Handler implements Publisher {
     private static final int MAIN_DATA=0;
 
-    static class InnerPublishData{
-        public Subscription subscription;
-        public Object data;
 
-        public InnerPublishData(Subscription subscription, Object data) {
-            this.subscription = subscription;
-            this.data = data;
-        }
-    }
     private LinkedList<InnerPublishData> publishQueue;
     private Object LOCK=new Object();
     private Thread publishThread;
