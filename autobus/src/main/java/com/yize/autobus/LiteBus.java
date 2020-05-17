@@ -29,7 +29,8 @@ public class LiteBus {
     }
 
     private volatile static LiteBus AUTO_BUS_INSTANCE;
-    public static LiteBus getAutoBus(){
+
+    protected static LiteBus getAutoBus(){
         if(AUTO_BUS_INSTANCE==null){
             synchronized (LiteBus.class){
                 if(AUTO_BUS_INSTANCE==null){
@@ -41,7 +42,7 @@ public class LiteBus {
         return AUTO_BUS_INSTANCE;
     }
 
-    public LiteBus(){
+    private LiteBus(){
         METHOD_CACHE=new ConcurrentHashMap<Class<?>, List<SubscriberMethod>>();
         subscriptionBus=new ConcurrentHashMap<Class<?>, List<Subscription>>();
         SUBSCRIPTION_CACHE=new ConcurrentHashMap<Class<?>, List<Subscription>>();
@@ -229,7 +230,7 @@ public class LiteBus {
         subscripitionManager.enqueue(new CleanUpWoker(subscriber));
     }
 
-    class CleanUpWoker implements Runnable{
+    private class CleanUpWoker implements Runnable{
 
         private final Object subscriber;
 

@@ -30,7 +30,7 @@ public class TestActivity extends AppCompatActivity {
                         while (i-->0){
                             try {
                                 Thread.sleep(2000);
-                                AutoBus.with(TestActivity.this).post(new MyMessage("AutoBus发出的消息"));
+                                AutoBus.with(TestActivity.this).publish(new MyMessage("AutoBus发出的消息"));
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }

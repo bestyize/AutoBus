@@ -26,7 +26,7 @@ public class AutoBus {
         return DEFAULT_INSTANCE;
     }
 
-    public AutoBus(Object activity) {
+    private AutoBus(Object activity) {
         LiteBus.getAutoBus().register(activity);
         subscribrActivity=activity;
         register(activity);
@@ -73,7 +73,7 @@ public class AutoBus {
 
     }
 
-    public void post(Object data){
+    public void publish(Object data){
         LiteBus.getAutoBus().publish(data);
     }
 }

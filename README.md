@@ -35,7 +35,7 @@
 3、使用AutoBus发送消息
 
 ```java
-    AutoBus.with(MainActivity.this).post(new MyMessage("Hello AutoBus"));
+    AutoBus.with(MainActivity.this).publish(new MyMessage("Hello AutoBus"));
 ```
 
 ## 3、LiteBus使用方式

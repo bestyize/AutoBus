@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
     ActivityMainBinding vb;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-//        LiteBus.defaultBus().register(this);
+        LiteBus.defaultBus().register(this);
         super.onCreate(savedInstanceState);
         vb=ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(vb.getRoot());
@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Object obj=new Object();
                 System.out.println(obj);
-//                LiteBus.defaultBus().publish(new MyMessage("同步消息"));
+                LiteBus.defaultBus().publish(new MyMessage("同步消息"));
             }
         });
         vb.btnSendAsyncMsg.setOnClickListener(new View.OnClickListener() {
