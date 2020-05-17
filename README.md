@@ -88,7 +88,7 @@
     }
 ```
 
-## 4、引入LiteBus依赖
+## 4、引入依赖
 
 1、添加jitpack.io仓库(build.gradle(project))
 
