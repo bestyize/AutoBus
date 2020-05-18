@@ -51,9 +51,6 @@ public class AutoBus {
         }
     };
 
-    private Map<FragmentManager, AutoBusBlankFragment> FRAGMENT_MANAGER_CHACE=new ConcurrentHashMap<>();
-
-
 
     private void register(Object activity){
         if(activity instanceof Activity){
