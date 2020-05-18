@@ -1,5 +1,7 @@
 package com.yize.autobus.autobus;
 
+import android.util.Log;
+
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -24,7 +26,7 @@ public class AutoBusFragmentLifeCycle  {
     }
 
     public void onStart() {
-//        Log.i(TAG,"onStart()");
+        Log.i(TAG,"onStart()");
         isStarted=true;
         for (AutoBusFragmentLifeCycleListener lifeCycleListener:lifeCycleListenerSet){
             lifeCycleListener.onStart();
@@ -32,7 +34,7 @@ public class AutoBusFragmentLifeCycle  {
     }
 
     public void onStop() {
-//        Log.i(TAG,"onStop()");
+        Log.i(TAG,"onStop()");
         isStarted=false;
         for (AutoBusFragmentLifeCycleListener lifeCycleListener:lifeCycleListenerSet){
             lifeCycleListener.onStop();
@@ -40,7 +42,7 @@ public class AutoBusFragmentLifeCycle  {
     }
 
     public void onDestroy() {
-//        Log.i(TAG,"onDestroy()");
+        Log.i(TAG,"onDestroy()");
         isDestroyed=true;
         for (AutoBusFragmentLifeCycleListener lifeCycleListener:lifeCycleListenerSet){
             lifeCycleListener.onDestroy();
