@@ -280,6 +280,10 @@ public class LiteBus {
                         int curr=0;
                         while (curr<subscriptionList.size()){
                             if(subscriptionList.get(curr).subscriber==subscriber){
+                                /**
+                                 * 移除之后，对象本身并没有马上被回收，而是等着JVM回收，但是其已经失去了
+                                 * 发布价值，因此需要立即将其设置为无效状态
+                                 */
                                 subscriptionList.remove(curr).isAlive=false;
                             }else {
                                 curr++;
