@@ -18,7 +18,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class LiteBus {
     private static final String TAG="LiteBus";
-    //默认实例
+    //默认实例，用来单独使用的
     private volatile static LiteBus DEFAULT_INSTANCE;
     public static LiteBus defaultBus(){
         if(DEFAULT_INSTANCE==null){
@@ -32,6 +32,9 @@ public class LiteBus {
         return DEFAULT_INSTANCE;
     }
 
+    /**
+     * AutoBus使用的实例，防止重复创建对象
+     */
     private volatile static LiteBus AUTO_BUS_INSTANCE;
 
     protected static LiteBus getAutoBus(){
@@ -70,6 +73,7 @@ public class LiteBus {
 
     //主发布器
     private Publisher mainPublisher;
+    //异步发布器，专门放大另外一个线程里面发布
     private Publisher asyncPublisher;
 
 
@@ -94,7 +98,7 @@ public class LiteBus {
     }
 
     /**
-     * 使用反射获取订阅方法列表
+     * 使用反射获取订阅方法列表，也就是那些加了注解的方法，这里限制只能使用public的方法可以被注册
      * @param subscriberClass
      * @return
      */
@@ -142,7 +146,9 @@ public class LiteBus {
     }
 
     /**
-     * 普通的数据发布函数
+     * 普通的数据发布函数。
+     * 在发布之前应该查看当前发布发布线程的状态，看一下是否处于发布状态
+     * 为了保证绝对的线程安全，需要使用ThreadLocal实现线程隔离
      * @param data
      */
     public void publish(Object data){
@@ -154,9 +160,11 @@ public class LiteBus {
             currState.isPublishing=true;
             try {
                 while (dataQueue.size()>0){
+                    //消息按个发布，每次发布队列最前面的数据，目前是按FIFO的方式推送消息，考虑后续加上优先级。
                     publishSingleData(dataQueue.remove(0),currState);
                 }
             }finally {
+                //发布完成后一定要改变状态，否则消息发布会受到阻塞
                 currState.isMainThread=false;
                 currState.isPublishing=false;
             }
@@ -168,7 +176,7 @@ public class LiteBus {
      * @param data
      * @param currState
      */
-    public void publishSingleData(Object data,PublishThreadState currState){
+    private void publishSingleData(Object data,PublishThreadState currState){
         Class<?> dataType=data.getClass();
         List<Subscription> subscriptionList=subscriptionBus.get(dataType);//根据数据类型获取订阅列表
         for(Subscription subscription:subscriptionList){//为每个订阅发布消息
@@ -182,7 +190,7 @@ public class LiteBus {
      * @param data
      * @param isMainThread
      */
-    public void publishToSubscriber(Subscription subscription, Object data, boolean isMainThread){
+    private void publishToSubscriber(Subscription subscription, Object data, boolean isMainThread){
         WorkMode workMode=subscription.subscriberMethod.workMode;
         switch (workMode){
             case THREAD_MAIN:
@@ -219,7 +227,7 @@ public class LiteBus {
     }
 
     /**
-     * 线程发布状态
+     * 线程发布状态，使用ThreadLocal保证线程隔离
      */
     private final ThreadLocal<PublishThreadState> currentPublishState=new ThreadLocal<PublishThreadState>(){
         @Override
@@ -228,6 +236,9 @@ public class LiteBus {
         }
     };
 
+    /**
+     * 当前线程的发布状态
+     */
     static class PublishThreadState{
         final List<Object> dataQueue=new LinkedList<Object>();
         boolean isMainThread;
@@ -242,6 +253,9 @@ public class LiteBus {
         subscripitionManager.enqueue(new CleanUpWoker(subscriber));
     }
 
+    /**
+     * 采用异步的方式退出订阅状态。
+     */
     private class CleanUpWoker implements Runnable{
 
         private final Object subscriber;
