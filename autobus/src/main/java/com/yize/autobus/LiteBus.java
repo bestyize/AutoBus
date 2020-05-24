@@ -112,11 +112,13 @@ public class LiteBus {
             if(method.isAnnotationPresent(Subscribe.class)){
                 Subscribe subscribe=method.getAnnotation(Subscribe.class);
                 WorkMode workMode=subscribe.workMode();//入口方法的工作模式，也就是作用的线程
+                WorkPriority workPriority=subscribe.workPriority();//订阅方法的优先级
                 Class<?> dataType=method.getParameterTypes()[0];//获取订阅方法的入口参数的类型
                 if(!dataTypeList.contains(dataType)){
                     dataTypeList.add(dataType);
                 }
-                SubscriberMethod subscriberMethod=new SubscriberMethod(method,workMode,dataType);
+
+                SubscriberMethod subscriberMethod=new SubscriberMethod(method,workMode,workPriority,dataType);
                 subscriberMethodList.add(subscriberMethod);
             }
         }
@@ -125,6 +127,7 @@ public class LiteBus {
     }
     /**
      * 为每个方法新建一个订阅，根据数据类型不同，放到一个订阅列表里
+     * 在这里实现了订阅者的分级
      * @param subscriber
      * @param subscriberMethod
      */
@@ -141,8 +144,31 @@ public class LiteBus {
         if(cachedSubscriptionList==null){
             cachedSubscriptionList=new LinkedList<>();
         }
-        cachedSubscriptionList.add(subscription);
-        subscriptionList.add(subscription);
+        WorkPriority currPriority=subscriberMethod.workPriority;
+        int cacheSize=cachedSubscriptionList.size();
+        if(cacheSize>0){
+            for (int i=0;i<cacheSize;i++){
+                Subscription su=cachedSubscriptionList.get(i);
+                if(currPriority.compareTo(su.subscriberMethod.workPriority)>0){
+                    cachedSubscriptionList.add(i,subscription);
+                    break;
+                }
+            }
+        }else {
+            cachedSubscriptionList.add(subscription);
+        }
+        int subSize=subscriptionList.size();
+        if(subSize>0){
+            for (int i=0;i<subSize;i++){
+                Subscription su=subscriptionList.get(i);
+                if(currPriority.compareTo(su.subscriberMethod.workPriority)>0){
+                    subscriptionList.add(i,subscription);
+                    break;
+                }
+            }
+        }else {
+            subscriptionList.add(subscription);
+        }
     }
 
     /**
