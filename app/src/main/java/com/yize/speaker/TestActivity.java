@@ -10,6 +10,7 @@ import android.view.View;
 import com.yize.autobus.AutoBus;
 import com.yize.autobus.Subscribe;
 import com.yize.autobus.WorkMode;
+import com.yize.autobus.WorkPriority;
 import com.yize.speaker.databinding.ActivityTestBinding;
 
 public class TestActivity extends AppCompatActivity {
@@ -41,10 +42,40 @@ public class TestActivity extends AppCompatActivity {
             }
         });
     }
-    @Subscribe(workMode = WorkMode.THREAD_MAIN)
+
+    /**
+     * 默认，主线程、中等优先级
+     * @param message
+     */
+    @Subscribe
     public void receiver(MyMessage message){
         Log.i(TAG,message.msg);
     }
+    /**
+     * 默认主线程、中等优先级
+     * @param message
+     */
+    @Subscribe(workMode = WorkMode.THREAD_MAIN,workPriority = WorkPriority.PRIORITY_DEFAULT)
+    public void receiver2(MyMessage message){
+        Log.i(TAG,message.msg);
+    }
+    /**
+     * 默认，主线程、高优先级
+     * @param message
+     */
+    @Subscribe(workPriority = WorkPriority.PRIORITY_HIGH)
+    public void receiver3(MyMessage message){
+        Log.i(TAG,message.msg);
+    }
+    /**
+     * 默认，子线程、高优先级
+     * @param message
+     */
+    @Subscribe(workMode = WorkMode.THREAD_ASYNC,workPriority = WorkPriority.PRIORITY_HIGH)
+    public void receiver4(MyMessage message){
+        Log.i(TAG,message.msg);
+    }
+
 
     @Override
     protected void onDestroy() {
