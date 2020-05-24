@@ -23,12 +23,24 @@
     }
 ```
 
-2、在需要接受消息的方法上面声明注解,并且声明方法的工作线程
+2、在需要接受消息的方法上面声明注解,声明方法的工作线程和优先级
 
 ```java
-    @Subscribe(workMode = WorkMode.THREAD_MAIN)
+    /**
+     * 默认，主线程、中等优先级
+     * @param message
+     */
+    @Subscribe
     public void receiver(MyMessage message){
-        Log.i("MainActivity",message.msg);
+        Log.i(TAG,message.msg);
+    }
+    /**
+     * 默认主线程、中等优先级
+     * @param message
+     */
+    @Subscribe(workMode = WorkMode.THREAD_MAIN,workPriority = WorkPriority.PRIORITY_DEFAULT)
+    public void receiver2(MyMessage message){
+        Log.i(TAG,message.msg);
     }
 ```
 
@@ -52,12 +64,26 @@
     }
 ```
 
-2、在需要接受消息的方法上面声明注解,并且声明方法的工作线程
+2、在需要接受消息的方法上面声明注解,声明方法的工作线程和优先级
+
+下面两种方式是等价的，在注解里面已默认设置，可以根据自己的需求改造
 
 ```java
-    @Subscribe(workMode = WorkMode.THREAD_MAIN)
+    /**
+     * 默认，主线程、中等优先级
+     * @param message
+     */
+    @Subscribe
     public void receiver(MyMessage message){
-        Log.i("MainActivity",message.msg);
+        Log.i(TAG,message.msg);
+    }
+    /**
+     * 默认主线程、中等优先级
+     * @param message
+     */
+    @Subscribe(workMode = WorkMode.THREAD_MAIN,workPriority = WorkPriority.PRIORITY_DEFAULT)
+    public void receiver2(MyMessage message){
+        Log.i(TAG,message.msg);
     }
 ```
 

@@ -15,6 +15,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class LiteBus {
     private static final String TAG="LiteBus";
@@ -57,6 +61,7 @@ public class LiteBus {
         subscriberDataTypeList=new HashMap<>();
         mainPublisher=new MainPublisher();
         asyncPublisher=new AsyncPublisher();
+
     }
     //订阅者的方法缓存，key为订阅者类
     private volatile Map<Class<?>, List<SubscriberMethod>> METHOD_CACHE;
@@ -76,6 +81,19 @@ public class LiteBus {
     //异步发布器，专门放大另外一个线程里面发布
     private Publisher asyncPublisher;
 
+    /**
+     * 最多同时调度的周期性任务数量
+     */
+    private final int MAX_PERIOD_TASK=64;
+
+    /**
+     * 建立一个线程池实现周期性的消息发布
+     * 为什么不用Timer呢？因为可能不止一个消息，为每个消息建立Timer显然是不划算的
+     * 使用JUC框架可以方便安全的实现定时任务
+     *
+     */
+
+    private ScheduledThreadPoolExecutor periodExecutor= (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(MAX_PERIOD_TASK);
 
     /**
      * 注册数据总线，根据数据类型的不同，放到Map对应位置
@@ -92,9 +110,7 @@ public class LiteBus {
             for (SubscriberMethod subscriberMethod:subscriberMethodList){
                 subscribeByDataType(subscriber,subscriberMethod);
             }
-
         }
-
     }
 
     /**
@@ -146,15 +162,18 @@ public class LiteBus {
         }
         WorkPriority currPriority=subscriberMethod.workPriority;
         int cacheSize=cachedSubscriptionList.size();
+        //按照优先级插入队列，按照高优先级在前的顺序插入
         if(cacheSize>0){
             for (int i=0;i<cacheSize;i++){
                 Subscription su=cachedSubscriptionList.get(i);
+                //比较优先级，寻找插入点
                 if(currPriority.compareTo(su.subscriberMethod.workPriority)>0){
                     cachedSubscriptionList.add(i,subscription);
                     break;
                 }
             }
         }else {
+            //队列中原本没有数据的话，直接插入就好了
             cachedSubscriptionList.add(subscription);
         }
         int subSize=subscriptionList.size();
@@ -196,6 +215,30 @@ public class LiteBus {
             }
         }
     }
+
+    /**
+     * 消息的延时发布，用scheduledThreadPool实现
+     * @param data 要发送的数据
+     * @param postDelay 延时时间，单位ms
+     */
+    public void publish(Object data,int postDelay){
+        //只调度一次就够了
+        periodExecutor.schedule(new PeriodPublishWorker(data,1),postDelay, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 消息的周期发布，用scheduledThreadPool实现
+     * 参考：https://blog.csdn.net/weixin_34204722/article/details/93190559
+     * @param data 要发送的数据
+     * @param repeatCount 要重复的次数
+     * @param period 发布周期,单位ms
+     */
+    public void publish(Object data,int repeatCount,int period){
+        //按照固定速率调度，也就是重复调度，实现定期发布
+        periodExecutor.scheduleAtFixedRate(new PeriodPublishWorker(data,repeatCount),0,period, TimeUnit.MILLISECONDS);
+    }
+
+
 
     /**
      * 发布消息
@@ -270,6 +313,38 @@ public class LiteBus {
         boolean isMainThread;
         boolean isPublishing;
     }
+
+
+    /**
+     * 周期发布的实际执行者
+     */
+    private class PeriodPublishWorker implements Runnable{
+        //要发布的数据
+        private Object data;
+        //发布的次数，只发布一次的写成1就好了
+        private int count;
+
+
+        public PeriodPublishWorker(Object data, int count) {
+            this.data = data;
+            this.count = count;
+
+        }
+
+        @Override
+        public void run() {
+            if(count>0){
+                publish(data);
+                count--;
+            }
+            if(count==0){
+                //此线程的任务完成，需要被回收
+                periodExecutor.remove(this);
+            }
+        }
+    }
+
+
 
     /**
      * 解除数据总线上的注册
