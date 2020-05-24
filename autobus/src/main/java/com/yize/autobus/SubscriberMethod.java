@@ -1,6 +1,7 @@
 package com.yize.autobus;
 
 import java.lang.reflect.Method;
+import java.util.Objects;
 
 public class SubscriberMethod {
     //订阅的方法
@@ -26,5 +27,31 @@ public class SubscriberMethod {
         this.workPriority=workPriority;
         this.dataType = dataType;
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SubscriberMethod that = (SubscriberMethod) o;
+        return Objects.equals(method, that.method) &&
+                workMode == that.workMode &&
+                workPriority == that.workPriority &&
+                Objects.equals(dataType, that.dataType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(method, workMode, workPriority, dataType);
+    }
+
+    @Override
+    public String toString() {
+        return "SubscriberMethod{" +
+                "method=" + method +
+                ", workMode=" + workMode +
+                ", workPriority=" + workPriority +
+                ", dataType=" + dataType +
+                '}';
     }
 }

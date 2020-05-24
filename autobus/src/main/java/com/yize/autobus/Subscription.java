@@ -1,5 +1,7 @@
 package com.yize.autobus;
 
+import java.util.Objects;
+
 /**
  * 对于每个被subscribe注解的public方法
  * 我们认为其属于一个订阅
@@ -25,5 +27,29 @@ public class Subscription {
     public Subscription(Object subscriber, SubscriberMethod subscriberMethod) {
         this.subscriber = subscriber;
         this.subscriberMethod = subscriberMethod;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Subscription that = (Subscription) o;
+        return isAlive == that.isAlive &&
+                Objects.equals(subscriber, that.subscriber) &&
+                Objects.equals(subscriberMethod, that.subscriberMethod);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(subscriber, subscriberMethod, isAlive);
+    }
+
+    @Override
+    public String toString() {
+        return "Subscription{" +
+                "subscriber=" + subscriber +
+                ", subscriberMethod=" + subscriberMethod +
+                ", isAlive=" + isAlive +
+                '}';
     }
 }
