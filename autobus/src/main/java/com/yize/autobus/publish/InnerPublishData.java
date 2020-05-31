@@ -1,4 +1,4 @@
-package com.yize.autobus.pubish;
+package com.yize.autobus.publish;
 
 import com.yize.autobus.Subscription;
 

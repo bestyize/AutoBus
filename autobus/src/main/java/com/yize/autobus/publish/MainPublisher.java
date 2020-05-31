@@ -1,4 +1,4 @@
-package com.yize.autobus.pubish;
+package com.yize.autobus.publish;
 
 import android.os.Handler;
 import android.os.Looper;
@@ -21,7 +21,7 @@ public class MainPublisher extends Handler implements Publisher {
     //主线程的消息发布队列
     private LinkedList<InnerPublishData> publishQueue;
     //上锁保证线程安全
-    private Object LOCK=new Object();
+    private final Object LOCK=new Object();
     //避免重复创建线程，只是用一个线程执行消息的发布操作
     private Thread publishThread;
 
@@ -34,8 +34,8 @@ public class MainPublisher extends Handler implements Publisher {
     /**
      * 订阅入队，交给一个线程单独处理。
      * 为了防止很多消息同时发送的情况，需要采用异步的方式，而且需要保证线程安全
-     * @param subscription
-     * @param data
+     * @param subscription 订阅
+     * @param data 数据
      */
     public void enqueue(Subscription subscription, Object data) {
         InnerPublishData publishData=new InnerPublishData(subscription,data);
@@ -85,23 +85,19 @@ public class MainPublisher extends Handler implements Publisher {
     @Override
     public void handleMessage(@NonNull Message msg) {
         super.handleMessage(msg);
-        switch (msg.what){
-            case MAIN_DATA:
-                InnerPublishData publishData=(InnerPublishData) msg.obj;
-                try {
-                    Subscription subscription=publishData.subscription;
-                    if(subscription!=null&&subscription.isAlive){
-                        publishData.subscription.subscriberMethod.method.invoke(subscription.subscriber,publishData.data);
-                    }
-
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
+        if (msg.what == MAIN_DATA) {
+            InnerPublishData publishData = (InnerPublishData) msg.obj;
+            try {
+                Subscription subscription = publishData.subscription;
+                if (subscription != null && subscription.isAlive) {
+                    publishData.subscription.subscriberMethod.method.invoke(subscription.subscriber, publishData.data);
                 }
-                break;
-            default:
-                break;
+
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
 
     }
