@@ -1,6 +1,4 @@
-package com.yize.autobus.pubish;
-
-import android.os.Message;
+package com.yize.autobus.publish;
 
 import com.yize.autobus.Subscription;
 
@@ -18,7 +16,7 @@ public class AsyncPublisher implements Publisher {
     /**
      * 发布过程要保证线程安全，不然有可能会带来null指针问题
      */
-    private Object LOCK=new Object();
+    private final Object LOCK=new Object();
     /**
      * 开辟一一个线程专门用于消息发布
      */
@@ -73,9 +71,7 @@ public class AsyncPublisher implements Publisher {
                                 publishData.subscription.subscriberMethod.method.invoke(subscription.subscriber,publishData.data);
                             }
 
-                        } catch (IllegalAccessException e) {
-                            e.printStackTrace();
-                        } catch (InvocationTargetException e) {
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
