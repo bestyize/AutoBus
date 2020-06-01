@@ -12,7 +12,7 @@ public class AsyncPublisher implements Publisher {
     /**
      * 发布队列
      */
-    private LinkedList<InnerPublishData> publishQueue;
+    private final LinkedList<InnerPublishData> publishQueue;
     /**
      * 发布过程要保证线程安全，不然有可能会带来null指针问题
      */
