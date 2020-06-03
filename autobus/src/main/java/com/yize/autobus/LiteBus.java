@@ -3,9 +3,9 @@ package com.yize.autobus;
 import android.os.Looper;
 import android.util.Log;
 
-import com.yize.autobus.pubish.AsyncPublisher;
-import com.yize.autobus.pubish.MainPublisher;
-import com.yize.autobus.pubish.Publisher;
+import com.yize.autobus.publish.AsyncPublisher;
+import com.yize.autobus.publish.MainPublisher;
+import com.yize.autobus.publish.Publisher;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -54,9 +53,9 @@ public class LiteBus {
     }
 
     private LiteBus(){
-        METHOD_CACHE=new ConcurrentHashMap<Class<?>, List<SubscriberMethod>>();
-        subscriptionBus=new ConcurrentHashMap<Class<?>, List<Subscription>>();
-        SUBSCRIPTION_CACHE=new ConcurrentHashMap<Class<?>, List<Subscription>>();
+        METHOD_CACHE=new ConcurrentHashMap<>();
+        subscriptionBus=new ConcurrentHashMap<>();
+        SUBSCRIPTION_CACHE=new ConcurrentHashMap<>();
         dataTypeList=new CopyOnWriteArrayList<>();
         subscriberDataTypeList=new HashMap<>();
         mainPublisher=new MainPublisher();
@@ -97,7 +96,7 @@ public class LiteBus {
 
     /**
      * 注册数据总线，根据数据类型的不同，放到Map对应位置
-     * @param subscriber
+     * @param subscriber 订阅者是某个方法
      */
     public void register(Object subscriber){
         Class<?> subscriberClass=subscriber.getClass();
@@ -309,7 +308,7 @@ public class LiteBus {
      * 当前线程的发布状态
      */
     static class PublishThreadState{
-        final List<Object> dataQueue=new LinkedList<Object>();
+        final List<Object> dataQueue=new LinkedList<>();
         boolean isMainThread;
         boolean isPublishing;
     }
