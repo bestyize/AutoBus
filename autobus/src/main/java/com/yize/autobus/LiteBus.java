@@ -166,7 +166,7 @@ public class LiteBus {
             for (int i=0;i<cacheSize;i++){
                 Subscription su=cachedSubscriptionList.get(i);
                 //比较优先级，寻找插入点
-                if(currPriority.compareTo(su.subscriberMethod.workPriority)>0){
+                if(currPriority.compareTo(su.subscriberMethod.workPriority)>=0){
                     cachedSubscriptionList.add(i,subscription);
                     break;
                 }
@@ -179,7 +179,7 @@ public class LiteBus {
         if(subSize>0){
             for (int i=0;i<subSize;i++){
                 Subscription su=subscriptionList.get(i);
-                if(currPriority.compareTo(su.subscriberMethod.workPriority)>0){
+                if(currPriority.compareTo(su.subscriberMethod.workPriority)>=0){
                     subscriptionList.add(i,subscription);
                     break;
                 }
