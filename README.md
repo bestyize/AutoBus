@@ -54,6 +54,8 @@
 
 ## 3、LiteBus使用方式
 
+### 3.1 基本用法
+
 1、定义消息类型
 
 ```java
@@ -88,7 +90,6 @@
         Log.i(TAG,message.msg);
     }
 ```
-
 3、在onCreate中注册当前类
 
 ```java
@@ -115,6 +116,27 @@
         LiteBus.defaultBus().unregister(this);
     }
 ```
+
+
+### 3.2 周期，延时消息发布使用方法
+
+注册过程和3.1中相同，不同的是发布调用的方法不同
+
+1、周期发布
+
+```java
+    //第一个参数为我们需要传递的消息，第二个参数是重复次数，第三个参数是发布周期，以ms为单位
+    LiteBus.defaultBus().publish(new MyMessage("定时消息"), 10, 1000);
+```
+
+2、延时发布
+
+```java
+    //第一个参数为我们需要传递的消息，第二个参数是延时时间，以ms为单位
+    LiteBus.defaultBus().publish(new MyMessage("延时消息"),1000);
+```
+
+
 
 ## 4、引入依赖
 

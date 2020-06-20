@@ -20,6 +20,11 @@
         android:layout_height="wrap_content"
         android:text="发送异步消息"></Button>
     <Button
+        android:text="发送定时消息"
+        android:id="@+id/btnSendPeriodMsg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"></Button>
+    <Button
         android:id="@+id/btnOpenSecond"
         android:text="打开第二个activity"
         android:layout_width="match_parent"
