@@ -31,7 +31,7 @@ public class AutoBus {
                 }
             }
         }
-        DEFAULT_INSTANCE.registerListener(activity);
+        DEFAULT_INSTANCE.addSubscriber(activity);
         return DEFAULT_INSTANCE;
     }
 
@@ -39,7 +39,7 @@ public class AutoBus {
         subscriberStack=new Stack<>();
     }
 
-    private void registerListener(Object activity){
+    public void addSubscriber(Object activity){
         LiteBus.getAutoBus().register(activity);
         //subscribrActivity=activity;
         subscriberStack.push(activity);
