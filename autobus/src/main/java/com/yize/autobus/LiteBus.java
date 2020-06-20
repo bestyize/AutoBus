@@ -368,7 +368,7 @@ public class LiteBus {
         public void run() {
             Class<?> subscriberClass=subscriber.getClass();
             List<SubscriberMethod> subscriberMethods=METHOD_CACHE.get(subscriberClass);
-            if(subscriberMethods.size()==0){
+            if(subscriberMethods==null||subscriberMethods.size()==0){
                 Log.i(TAG,"unregister failed ,there is no subscriber");
                 return;
             }

@@ -9,13 +9,15 @@ import com.yize.autobus.autobus.AutoBusFragmentLifeCycleListener;
 
 
 import java.util.Map;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AutoBus {
     private static final String TAG="com.yize.litebus.AutoBus";
     //双检锁要保证变量的可见性
     private static volatile AutoBus DEFAULT_INSTANCE;
-    private static Object subscribrActivity;
+    //private Object subscribrActivity;
+    private static Stack<Object> subscriberStack;//订阅者放在一个栈里面,按此顺序销毁activity,Stack是线程安全的容器，不需要我们同步。
     /**
      * 单例模式创建AutoBus实体
      * @param activity
@@ -33,9 +35,14 @@ public class AutoBus {
         return DEFAULT_INSTANCE;
     }
 
+    private AutoBus(){
+        subscriberStack=new Stack<>();
+    }
+
     private void registerListener(Object activity){
         LiteBus.getAutoBus().register(activity);
-        subscribrActivity=activity;
+        //subscribrActivity=activity;
+        subscriberStack.push(activity);
         register(activity);
     }
 
@@ -56,8 +63,11 @@ public class AutoBus {
         @Override
         public void onDestroy() {
             Log.i("AutoBus","onDestroy()");
-            LiteBus.getAutoBus().unregister(subscribrActivity);
-            subscribrActivity=null;
+            if(subscriberStack.isEmpty()==false){
+                LiteBus.getAutoBus().unregister(subscriberStack.pop());
+            }else {
+                Log.i("AutoBus","订阅者已经清空了");
+            }
         }
     };
 
