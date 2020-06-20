@@ -7,6 +7,7 @@ import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.yize.autobus.AutoBus;
 import com.yize.autobus.LiteBus;
 import com.yize.autobus.Subscribe;
 import com.yize.autobus.WorkMode;
@@ -28,7 +29,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Object obj=new Object();
                 System.out.println(obj);
-                LiteBus.defaultBus().publish(new MyMessage("同步消息"));
+                //LiteBus.defaultBus().publish(new MyMessage("同步消息"));
+
             }
         });
         vb.btnSendAsyncMsg.setOnClickListener(new View.OnClickListener() {
@@ -40,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                         int count=20;
                         while (count-->0){
                             try {
-
+                                AutoBus.with(MainActivity.this).publish(new MyMessage("MainActivity"));
                                 Thread.sleep(2000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
@@ -65,10 +67,10 @@ public class MainActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        LiteBus.defaultBus().publish(new MyMessage("定时消息"), 10, 1000);
+                        //LiteBus.defaultBus().publish(new MyMessage("定时消息"), 10, 1000);
                     }
                 }).start();
-                LiteBus.defaultBus().publish(new MyMessage("延时消息"),1000);
+                //LiteBus.defaultBus().publish(new MyMessage("延时消息"),1000);
             }
         });
 

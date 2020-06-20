@@ -25,18 +25,15 @@ public class AutoBus {
         if(DEFAULT_INSTANCE==null){
             synchronized (AutoBus.class){
                 if(DEFAULT_INSTANCE==null){
-                    DEFAULT_INSTANCE=new AutoBus(activity);
+                    DEFAULT_INSTANCE=new AutoBus();
                 }
             }
         }
+        DEFAULT_INSTANCE.registerListener(activity);
         return DEFAULT_INSTANCE;
     }
 
-    /**
-     * 构造函数，用来初始化非static的变量。
-     * @param activity
-     */
-    private AutoBus(Object activity) {
+    private void registerListener(Object activity){
         LiteBus.getAutoBus().register(activity);
         subscribrActivity=activity;
         register(activity);

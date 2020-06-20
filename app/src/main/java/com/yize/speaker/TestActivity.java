@@ -2,6 +2,7 @@ package com.yize.speaker;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -27,11 +28,11 @@ public class TestActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        int i=20;
-                        while (i-->0){
+                        int count=20;
+                        while (count-->0){
+                            AutoBus.with(TestActivity.this).publish(new MyMessage("AutoBus : TestActivity发送的消息"));
                             try {
                                 Thread.sleep(2000);
-                                AutoBus.with(TestActivity.this).publish(new MyMessage("AutoBus发出的消息"));
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -39,6 +40,13 @@ public class TestActivity extends AppCompatActivity {
                         }
                     }
                 }).start();
+            }
+        });
+        binding.btnOpenDeep.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(TestActivity.this,DeepActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -51,30 +59,30 @@ public class TestActivity extends AppCompatActivity {
     public void receiver(MyMessage message){
         Log.i(TAG,message.msg);
     }
-    /**
-     * 默认主线程、中等优先级
-     * @param message
-     */
-    @Subscribe(workMode = WorkMode.THREAD_MAIN,workPriority = WorkPriority.PRIORITY_DEFAULT)
-    public void receiver2(MyMessage message){
-        Log.i(TAG,message.msg);
-    }
-    /**
-     * 默认，主线程、高优先级
-     * @param message
-     */
-    @Subscribe(workPriority = WorkPriority.PRIORITY_HIGH)
-    public void receiver3(MyMessage message){
-        Log.i(TAG,message.msg);
-    }
-    /**
-     * 默认，子线程、高优先级
-     * @param message
-     */
-    @Subscribe(workMode = WorkMode.THREAD_ASYNC,workPriority = WorkPriority.PRIORITY_HIGH)
-    public void receiver4(MyMessage message){
-        Log.i(TAG,message.msg);
-    }
+//    /**
+//     * 默认主线程、中等优先级
+//     * @param message
+//     */
+//    @Subscribe(workMode = WorkMode.THREAD_MAIN,workPriority = WorkPriority.PRIORITY_DEFAULT)
+//    public void receiver2(MyMessage message){
+//        Log.i(TAG,message.msg);
+//    }
+//    /**
+//     * 默认，主线程、高优先级
+//     * @param message
+//     */
+//    @Subscribe(workPriority = WorkPriority.PRIORITY_HIGH)
+//    public void receiver3(MyMessage message){
+//        Log.i(TAG,message.msg);
+//    }
+//    /**
+//     * 默认，子线程、高优先级
+//     * @param message
+//     */
+//    @Subscribe(workMode = WorkMode.THREAD_ASYNC,workPriority = WorkPriority.PRIORITY_HIGH)
+//    public void receiver4(MyMessage message){
+//        Log.i(TAG,message.msg);
+//    }
 
 
     @Override
