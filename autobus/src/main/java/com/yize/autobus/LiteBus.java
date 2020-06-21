@@ -350,17 +350,17 @@ public class LiteBus {
      * @param subscriber
      */
     public void unregister(Object subscriber){
-        subscripitionManager.enqueue(new CleanUpWoker(subscriber));
+        subscripitionManager.enqueue(new CleanUpWorker(subscriber));
     }
 
     /**
      * 采用异步的方式退出订阅状态。
      */
-    private class CleanUpWoker implements Runnable{
+    private class CleanUpWorker implements Runnable{
 
         private final Object subscriber;
 
-        CleanUpWoker(Object subscriber) {
+        CleanUpWorker(Object subscriber) {
             this.subscriber = subscriber;
         }
 
