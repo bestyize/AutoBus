@@ -17,7 +17,7 @@ public class DeepActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        LiteBus.defaultBus().register(this);
+        //LiteBus.defaultBus().register(this);
         binding=ActivityDeepBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         binding.btnSendMsg.setOnClickListener(new View.OnClickListener() {
@@ -27,16 +27,7 @@ public class DeepActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        int count=20;
-                        while (count-->0){
-                            AutoBus.with(DeepActivity.this).publish(new MyMessage("AutoBus : DeepActivity发送的消息"));
-                            try {
-                                Thread.sleep(2000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
+                        AutoBus.with(DeepActivity.this).publish(new MyMessage("AutoBus : DeepActivity发送的消息"),20,2000);
                     }
                 }).start();
 
@@ -57,6 +48,6 @@ public class DeepActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        LiteBus.defaultBus().unregister(this);
+        //LiteBus.defaultBus().unregister(this);
     }
 }

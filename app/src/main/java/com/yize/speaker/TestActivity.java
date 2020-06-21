@@ -28,16 +28,7 @@ public class TestActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        int count=20;
-                        while (count-->0){
-                            AutoBus.with(TestActivity.this).publish(new MyMessage("AutoBus : TestActivity发送的消息"));
-                            try {
-                                Thread.sleep(2000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
+                        AutoBus.with(TestActivity.this).publish(new MyMessage("AutoBus : TestActivity发送的消息"),20,2000);
                     }
                 }).start();
             }

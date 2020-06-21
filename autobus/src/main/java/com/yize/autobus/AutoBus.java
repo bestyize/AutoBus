@@ -8,9 +8,11 @@ import com.yize.autobus.autobus.AutoBusBlankFragment;
 import com.yize.autobus.autobus.AutoBusFragmentLifeCycleListener;
 
 
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class AutoBus {
     private static final String TAG="com.yize.litebus.AutoBus";
@@ -18,6 +20,7 @@ public class AutoBus {
     private static volatile AutoBus DEFAULT_INSTANCE;
     //private Object subscribrActivity;
     private static Stack<Object> subscriberStack;//订阅者放在一个栈里面,按此顺序销毁activity,Stack是线程安全的容器，不需要我们同步。
+
     /**
      * 单例模式创建AutoBus实体
      * @param activity
@@ -31,9 +34,14 @@ public class AutoBus {
                 }
             }
         }
-        DEFAULT_INSTANCE.addSubscriber(activity);
+        if(!subscriberStack.contains(activity)){
+            DEFAULT_INSTANCE.addSubscriber(activity);
+        }
+        DEFAULT_INSTANCE.currPublisher=activity;
         return DEFAULT_INSTANCE;
     }
+    //当前发布者，预留
+    private Object currPublisher;
 
     private AutoBus(){
         subscriberStack=new Stack<>();
@@ -111,5 +119,26 @@ public class AutoBus {
      */
     public void publish(Object data){
         LiteBus.getAutoBus().publish(data);
+    }
+
+    /**
+     * 消息的延时发布，用scheduledThreadPool实现
+     * @param data 要发送的数据
+     * @param postDelay 延时时间，单位ms
+     */
+    public void publish(Object data,int postDelay){
+        LiteBus.getAutoBus().publish(data,postDelay,currPublisher);
+    }
+
+    /**
+     * 消息的周期发布，用scheduledThreadPool实现
+     * 参考：https://blog.csdn.net/weixin_34204722/article/details/93190559
+     * @param data 要发送的数据
+     * @param repeatCount 要重复的次数
+     * @param period 发布周期,单位ms
+     */
+    public void publish(Object data,int repeatCount,int period){
+        //按照固定速率调度，也就是重复调度，实现定期发布
+        LiteBus.getAutoBus().publish(data,repeatCount,period,currPublisher);
     }
 }

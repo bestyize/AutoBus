@@ -10,9 +10,12 @@ import com.yize.autobus.publish.Publisher;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
@@ -60,6 +63,7 @@ public class LiteBus {
         subscriberDataTypeList=new HashMap<>();
         mainPublisher=new MainPublisher();
         asyncPublisher=new AsyncPublisher();
+        periodPublishWorkerMap=new ConcurrentHashMap<>();
 
     }
     //订阅者的方法缓存，key为订阅者类
@@ -79,6 +83,11 @@ public class LiteBus {
     private Publisher mainPublisher;
     //异步发布器，专门放大另外一个线程里面发布
     private Publisher asyncPublisher;
+
+    /**
+     * 周期发布者
+     */
+    private  Map<Object,PeriodPublishWorker> periodPublishWorkerMap;
 
     /**
      * 最多同时调度的周期性任务数量
@@ -215,6 +224,37 @@ public class LiteBus {
         }
     }
 
+
+
+    /**
+     * 消息的延时发布，用scheduledThreadPool实现
+     * @param data 要发送的数据
+     * @param postDelay 延时时间，单位ms
+     * @param publisher 消息发布者，在销毁前要回收
+     */
+    protected void publish(Object data,int postDelay,Object publisher){
+        //只调度一次就够了
+        PeriodPublishWorker worker=new PeriodPublishWorker(data,1);
+        periodPublishWorkerMap.put(publisher,worker);
+        periodExecutor.schedule(worker,postDelay, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 消息的周期发布，用scheduledThreadPool实现
+     * 参考：https://blog.csdn.net/weixin_34204722/article/details/93190559
+     * @param data 要发送的数据
+     * @param repeatCount 要重复的次数
+     * @param period 发布周期,单位ms
+     * @param publisher 消息发布者，在销毁前要回收
+     */
+    protected void publish(Object data,int repeatCount,int period,Object publisher){
+        //按照固定速率调度，也就是重复调度，实现定期发布
+        PeriodPublishWorker worker=new PeriodPublishWorker(data,repeatCount);
+        periodPublishWorkerMap.put(publisher,worker);
+        periodExecutor.scheduleAtFixedRate(worker,0,period, TimeUnit.MILLISECONDS);
+
+    }
+
     /**
      * 消息的延时发布，用scheduledThreadPool实现
      * @param data 要发送的数据
@@ -222,7 +262,8 @@ public class LiteBus {
      */
     public void publish(Object data,int postDelay){
         //只调度一次就够了
-        periodExecutor.schedule(new PeriodPublishWorker(data,1),postDelay, TimeUnit.MILLISECONDS);
+        PeriodPublishWorker worker=new PeriodPublishWorker(data,1);
+        periodExecutor.schedule(worker,postDelay, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -234,8 +275,12 @@ public class LiteBus {
      */
     public void publish(Object data,int repeatCount,int period){
         //按照固定速率调度，也就是重复调度，实现定期发布
-        periodExecutor.scheduleAtFixedRate(new PeriodPublishWorker(data,repeatCount),0,period, TimeUnit.MILLISECONDS);
+        PeriodPublishWorker worker=new PeriodPublishWorker(data,repeatCount);
+        periodExecutor.scheduleAtFixedRate(worker,0,period, TimeUnit.MILLISECONDS);
+
     }
+
+
 
 
 
@@ -324,10 +369,10 @@ public class LiteBus {
         private int count;
 
 
+
         public PeriodPublishWorker(Object data, int count) {
             this.data = data;
             this.count = count;
-
         }
 
         @Override
@@ -340,6 +385,11 @@ public class LiteBus {
                 //此线程的任务完成，需要被回收
                 periodExecutor.remove(this);
             }
+        }
+
+        public void cancel(){
+            count=0;
+            periodExecutor.remove(this);
         }
     }
 
@@ -372,6 +422,11 @@ public class LiteBus {
                 Log.i(TAG,"unregister failed ,there is no subscriber");
                 return;
             }
+            if(periodPublishWorkerMap.containsKey(subscriber)){
+                PeriodPublishWorker worker=periodPublishWorkerMap.get(subscriber);
+                worker.cancel();
+                periodPublishWorkerMap.remove(subscriber);
+            }
             METHOD_CACHE.remove(subscriberClass);
             synchronized (this){
                 for (Class<?> dataType:dataTypeList){
@@ -385,11 +440,13 @@ public class LiteBus {
                                  * 发布价值，因此需要立即将其设置为无效状态
                                  */
                                 subscriptionList.remove(curr).isAlive=false;
+
                             }else {
                                 curr++;
                             }
                         }
                     }
+                    Log.i(TAG,"回收订阅类");
                 }
             }
         }
